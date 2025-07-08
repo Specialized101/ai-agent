@@ -1,0 +1,1 @@
+# Basic CLI AI agent with Google's Gemini 
