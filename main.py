@@ -58,7 +58,6 @@ def main():
                 print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
         except Exception as e:
-            print(f"Error: {e}")
             return f"Error: {e}"
 
 
