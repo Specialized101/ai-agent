@@ -32,31 +32,42 @@ def main():
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
 
-    response = generate_content(client, messages)
+    for i in range(20):
+        try:
+            response = generate_content(client, messages)
 
-    print("Response:")
-    if response.function_calls:
-        for function_call_part in response.function_calls:
-            # print(f"Calling function: {function_call_part.name}({function_call_part.args})")
-            function_call_result = call_function(function_call_part, verbose_enabled)
-            # print(function_call_result.parts)
-            if not function_call_result.parts[0].function_response.response:
-                sys.exit()
+            for candidate in response.candidates:
+                messages.append(candidate.content)
+
+            if response.function_calls:
+                for function_call_part in response.function_calls:
+                    function_call_result = call_function(function_call_part, verbose_enabled)
+                    messages.append(function_call_result)
+                    if not function_call_result.parts[0].function_response.response:
+                        sys.exit()
+                    if verbose_enabled:
+                        print(f"-> {function_call_result.parts[0].function_response.response['result']}")
+            else:
+                print("Final Response:")
+                print(response.text)
+                break
+
             if verbose_enabled:
-                print(f"-> {function_call_result.parts[0].function_response.response['result']}")
-    else:
-        print(response.text)
+                print(f"User prompt: {user_prompt}")
+                print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+                print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
-    if verbose_enabled:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+        except Exception as e:
+            print(f"Error: {e}")
+            return f"Error: {e}"
 
 
 
 def generate_content(client, messages):
     system_prompt = """
 You are a helpful AI coding agent.
+
+Your task is to help the user with his calculator python project
 
 When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
